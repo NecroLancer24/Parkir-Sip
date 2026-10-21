@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sensors', function (Blueprint $table) {
-            $table->id('id_sensor')->primary();
-            $table->binary('plat_nomer');
+        Schema::create('gates', function (Blueprint $table) {
+            $table->id('id_gate')->primary();
+            $table->binary('plat_nomer')->nullable();
             $table->boolean('status')->default(0);
+            $table->boolean('jenis_portal')->default(0);
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sensors');
+        Schema::dropIfExists('gates');
     }
 };

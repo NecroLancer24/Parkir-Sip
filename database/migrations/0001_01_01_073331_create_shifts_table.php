@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pengguna', function (Blueprint $table) {
-            $table->uuid('uuid_pengguna')->primary();
-            $table->string('nama', 100);
-            $table->string('username', 50)->unique();
-            $table->string('password', 255);
+        Schema::create('shifts', function (Blueprint $table) {
+            $table->id('id_shift')->primary()->autoIncrement();
+            $table->string('nama_shift');
+            $table->time('jam_masuk');
+            $table->time('jam_keluar');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pengguna');
+        Schema::dropIfExists('shifts');
     }
 };

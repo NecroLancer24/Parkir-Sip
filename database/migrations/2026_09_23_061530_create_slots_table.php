@@ -12,11 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('slots', function (Blueprint $table) {
-            $table->id('id_slot')->primary()->autoIncrement();
-            $table->foreignId('id_sensor')
-                ->constrained('sensors', 'id_sensor')
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
+            $table->id('id_slot')->primary();
+            /* $table->foreignId('id_gate') */
+            /* ->constrained('gates', 'id_gate') */
+            /* ->onUpdate('cascade') */
+            /* ->onDelete('cascade'); */
+            $table->boolean('status_sensor')->default(0);
             $table->string('nomer_slot', 10);
             $table->boolean('status_slot')->default(0);
             $table->string('lokasi', 50)->nullable();

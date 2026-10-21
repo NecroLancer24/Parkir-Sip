@@ -13,16 +13,12 @@ return new class extends Migration
     {
         Schema::create('parking_log', function (Blueprint $table) {
             $table->id('id_log')->primary()->autoIncrement();
-            $table->foreignUuid('uuid_pengguna')
-                ->constrained('pengguna', 'uuid_pengguna')
-                ->onUpdate('cascade')
-                ->onDelete('restrict');
             $table->foreignId('id_slot')
                 ->constrained('slots', 'id_slot')
                 ->onUpdate('cascade')
                 ->onDelete('restrict');
-            $table->foreignId('id_sensor')
-                ->constrained('sensors', 'id_sensor')
+            $table->foreignId('id_gate')
+                ->constrained('gates', 'id_gate')
                 ->onUpdate('cascade')
                 ->onDelete('restrict');
             $table->dateTime('waktu_masuk')->nullable();
