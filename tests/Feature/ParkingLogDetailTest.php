@@ -4,12 +4,17 @@ use App\Models\parking_log;
 use App\Models\pengguna;
 use App\Models\sensor;
 use App\Models\slot;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->make());
+});
 
 /**
  * Create a parking log with its related sensor, slot, and user.

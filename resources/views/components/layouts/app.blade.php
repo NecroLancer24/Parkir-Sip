@@ -1,5 +1,17 @@
 @props(['title' => 'Parking overview', 'breadcrumb' => 'Overview'])
 
+@php
+    $headerTime = now();
+    $offsetMinutes = $headerTime->utcOffset();
+    $offsetLabel = $offsetMinutes === 0
+        ? 'UTC'
+        : 'UTC'.($offsetMinutes < 0 ? '-' : '+').intdiv(abs($offsetMinutes), 60);
+
+    if (abs($offsetMinutes) % 60 !== 0) {
+        $offsetLabel .= ':'.str_pad((string) (abs($offsetMinutes) % 60), 2, '0', STR_PAD_LEFT);
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
@@ -30,8 +42,8 @@
             </span>
 
             <span class="min-w-0 flex-1">
-                <span class="block truncate text-[12.5px] font-semibold leading-4 text-ink">Central Park</span>
-                <span class="block truncate text-[11px] leading-4 text-ink-muted">Demo workspace</span>
+                <span class="block truncate text-[12.5px] font-semibold leading-4 text-ink">{{ auth()->user()->organization ?: 'Central Park' }}</span>
+                <span class="block truncate text-[11px] leading-4 text-ink-muted">Operator workspace</span>
             </span>
 
             <x-icon name="chevron-down" class="size-4 shrink-0 text-ink-muted" />
@@ -43,6 +55,32 @@
             <x-nav-item :href="route('dashboard')" icon="dashboard" :active="request()->routeIs('dashboard')">Overview</x-nav-item>
             <x-nav-item :href="route('parking-log')" icon="activity" :active="request()->routeIs('parking-log*')">Parking log</x-nav-item>
         </nav>
+
+        <div class="mt-auto border-t border-line-soft pt-4">
+            <div class="flex items-center gap-2.5 px-1">
+                <span class="grid size-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-semibold uppercase text-brand">
+                    {{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}
+                </span>
+
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-[11.5px] font-medium text-ink">{{ auth()->user()->name }}</p>
+                    <p class="truncate text-[10px] text-ink-muted">{{ auth()->user()->email }}</p>
+                </div>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+
+                    <button
+                        type="submit"
+                        class="grid size-7 place-items-center rounded-md text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
+                        title="Log out"
+                        aria-label="Log out"
+                    >
+                        <x-icon name="log-out" class="size-4" />
+                    </button>
+                </form>
+            </div>
+        </div>
     </aside>
 
     <div class="flex min-h-screen flex-col lg:pl-[216px]">
@@ -68,7 +106,11 @@
 
                 <div class="flex shrink-0 items-center gap-2 text-[12px] text-ink-soft">
                     <x-icon name="clock" class="size-4 text-ink-muted" />
-                    <span>10:42 AM <span class="text-ink-muted">-</span> UTC+7</span>
+                    <time data-live-clock datetime="{{ $headerTime->toIso8601String() }}">
+                        <span data-clock-time>{{ $headerTime->format('g:i A') }}</span>
+                        <span class="text-ink-muted">-</span>
+                        <span data-clock-offset>{{ $offsetLabel }}</span>
+                    </time>
                 </div>
             </div>
         </header>

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ParkingLogExport;
 use App\Models\parking_log;
 use App\Models\sensor;
 use App\Models\slot;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -44,12 +46,36 @@ class DashboardController extends Controller
      */
     public function parkingLog(Request $request): View
     {
-        $cari = $request->string('q')->trim();
+        $cari = $request->string('q')->trim()->toString();
 
-        $riwayatParkir = parking_log::query()
+        return view('parking-log', [
+            'riwayatParkir' => $this->parkingLogQuery($cari)->paginate(15)->withQueryString(),
+            'cari' => $cari,
+        ]);
+    }
+
+    /**
+     * Download the current parking log search results as an Excel workbook.
+     */
+    public function exportParkingLog(Request $request): StreamedResponse
+    {
+        $cari = $request->string('q')->trim()->toString();
+
+        return (new ParkingLogExport($this->parkingLogQuery($cari)->get()))
+            ->download('parking-log-'.now()->format('Y-m-d').'.xlsx');
+    }
+
+    /**
+     * Build the searchable parking log query shared by the table and export.
+     *
+     * @return Builder<parking_log>
+     */
+    private function parkingLogQuery(string $cari): Builder
+    {
+        return parking_log::query()
             ->with('sensor')
-            ->when($cari, function ($query) use ($cari) {
-                $query->where(function ($subQuery) use ($cari) {
+            ->when($cari !== '', function (Builder $query) use ($cari) {
+                $query->where(function (Builder $subQuery) use ($cari) {
                     $subQuery
                         ->where('slots.nomer_slot', 'like', "%{$cari}%")
                         ->orWhere('pengguna.nama', 'like', "%{$cari}%")
@@ -67,14 +93,7 @@ class DashboardController extends Controller
                 'pengguna.nama as nama_pengguna',
             ])
             ->orderBy('slots.nomer_slot')
-            ->orderBy('parking_log.waktu_masuk', 'desc')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('parking-log', [
-            'riwayatParkir' => $riwayatParkir,
-            'cari' => $cari->value(),
-        ]);
+            ->orderBy('parking_log.waktu_masuk', 'desc');
     }
 
     /**
