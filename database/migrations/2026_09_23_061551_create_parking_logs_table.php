@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('parking_log', function (Blueprint $table) {
-            $table->id('id_log')->primary()->autoIncrement();
+            $table->id('id_log');
             $table->foreignUuid('uuid_pengguna')
                 ->constrained('pengguna', 'uuid_pengguna')
                 ->onUpdate('cascade')

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('slots', function (Blueprint $table) {
-            $table->id('id_slot')->primary()->autoIncrement();
+            $table->id('id_slot');
             $table->foreignId('id_sensor')
                 ->constrained('sensors', 'id_sensor')
                 ->onUpdate('cascade')
