@@ -19,12 +19,45 @@ class DashboardController extends Controller
     /**
      * Display the parking management dashboard.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $totalSlots = slot::count();
         $occupiedSlots = slot::where('status_slot', true)->count();
         $availableSlots = $totalSlots - $occupiedSlots;
         $activeLogs = parking_log::whereNull('waktu_keluar')->count();
+
+        $slotTerpilih = $request->filled('slot')
+            ? slot::with('sensor')->find($request->integer('slot'))
+            : null;
+
+        $riwayatSlot = $slotTerpilih
+            ? $slotTerpilih->parkingLogs()->with(['pengguna', 'sensor'])->orderByDesc('waktu_masuk')->get()
+            : collect();
+
+        $slots = slot::with('sensor')->orderBy('nomer_slot')->get();
+
+        $floors = $slots
+            ->groupBy(fn (slot $slotModel) => $slotModel->lokasi ?? 'Lantai 1')
+            ->sortBy(fn ($floorSlots, $label) => (int) filter_var($label, FILTER_SANITIZE_NUMBER_INT))
+            ->map(fn ($floorSlots, $label) => [
+                'label' => $label,
+                'number' => (int) filter_var($label, FILTER_SANITIZE_NUMBER_INT),
+                'slots' => $floorSlots->sortBy('nomer_slot')->values(),
+            ])
+            ->values();
+
+        // Active floor: explicit ?lantai=, otherwise the floor of the selected slot.
+        $activeFloorIndex = $floors->search(
+            fn ($floor) => $floor['label'] === 'Lantai '.$request->integer('lantai'),
+        );
+
+        if ($activeFloorIndex === false && $slotTerpilih) {
+            $activeFloorIndex = $floors->search(
+                fn ($floor) => $floor['slots']->contains('id_slot', $slotTerpilih->id_slot),
+            );
+        }
+
+        $activeFloorIndex = $activeFloorIndex === false ? 0 : $activeFloorIndex;
 
         return view('dashboard', [
             'statistik' => [
@@ -33,11 +66,17 @@ class DashboardController extends Controller
                 'slot_tersedia' => max($availableSlots, 0),
                 'persen_terisi' => $totalSlots > 0 ? round(($occupiedSlots / $totalSlots) * 100) : 0,
             ],
-            'slots' => slot::with('sensor')->orderBy('nomer_slot')->get(),
+            'slots' => $slots,
+            'floors' => $floors,
+            'activeFloor' => $floors->get($activeFloorIndex),
+            'activeFloorIndex' => $activeFloorIndex,
             'riwayatTerbaru' => parking_log::with(['pengguna', 'slot'])
                 ->latest('waktu_masuk')
                 ->limit(5)
                 ->get(),
+            'slotTerpilih' => $slotTerpilih,
+            'riwayatSlot' => $riwayatSlot,
+            'logAktifSlot' => $riwayatSlot->firstWhere('waktu_keluar', null),
         ]);
     }
 
@@ -105,6 +144,25 @@ class DashboardController extends Controller
 
         return view('parking-log-show', [
             'log' => $log,
+        ]);
+    }
+
+    /**
+     * Display a single slot with its current status and parking history.
+     */
+    public function slotShow(slot $slot): View
+    {
+        $slot->load('sensor');
+
+        $logs = $slot->parkingLogs()
+            ->with(['pengguna', 'sensor'])
+            ->orderByDesc('waktu_masuk')
+            ->get();
+
+        return view('slot-show', [
+            'slot' => $slot,
+            'riwayatSlot' => $logs,
+            'logAktif' => $logs->firstWhere('waktu_keluar', null),
         ]);
     }
 

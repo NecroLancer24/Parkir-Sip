@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/parking-log/{log}', [DashboardController::class, 'show'])
         ->name('parking-log.show');
+
+    Route::get('/slots/{slot}', [DashboardController::class, 'slotShow'])
+        ->name('slots.show');
 });
 
 Route::get('/plate-captures/file/{path}', [DashboardController::class, 'plateFile'])

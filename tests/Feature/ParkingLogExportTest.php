@@ -39,7 +39,7 @@ function createExportParkingLog(array $attributes = []): parking_log
         'uuid_pengguna' => $pengguna->uuid_pengguna,
         'id_slot' => $slot->id_slot,
         'id_sensor' => $sensor->id_sensor,
-        'waktu_masuk' => $attributes['waktu_masuk'] ?? now()->subHour(),
+        'waktu_masuk' => $attributes['waktu_masuk'] ?? now()->subMinutes(150),
         'waktu_keluar' => $attributes['waktu_keluar'] ?? null,
     ]);
 }
@@ -86,6 +86,9 @@ test('the parking log can be exported as an excel file', function () {
         ->toContain('B 1234 ABC')
         ->toContain('Ada Lovelace')
         ->toContain('Lantai 1')
+        ->toContain('Tariff')
+        ->toContain('Motor')
+        ->toContain('Rp 4.000')
         ->toContain('Parked');
 });
 

@@ -46,16 +46,18 @@ class ParkingLogExport
      */
     private function worksheetXml(): string
     {
-        $headers = ['Slot', 'Location', 'Plate', 'User', 'Entry', 'Exit', 'Status'];
-        $widths = [12, 18, 20, 24, 20, 20, 12];
+        $headers = ['Slot', 'Location', 'Plate', 'User', 'Vehicle', 'Entry', 'Exit', 'Tariff', 'Status'];
+        $widths = [12, 18, 20, 24, 12, 20, 20, 14, 12];
 
         $rows = $this->logs->map(fn (parking_log $log): array => [
             $log->nomer_slot,
             $log->lokasi ?? '-',
             $this->plateFor($log),
             $log->nama_pengguna,
+            $log->jenisKendaraanLabel(),
             optional($log->waktu_masuk)->format('d M Y, H:i') ?? '-',
             optional($log->waktu_keluar)->format('d M Y, H:i') ?? '-',
+            $log->tarifFormatted(),
             $log->waktu_keluar === null ? 'Parked' : 'Completed',
         ]);
 

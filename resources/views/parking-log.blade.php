@@ -48,6 +48,7 @@
                         <th class="px-[18px] py-3 font-semibold">User</th>
                         <th class="px-[18px] py-3 font-semibold">Entry</th>
                         <th class="px-[18px] py-3 font-semibold">Exit</th>
+                        <th class="px-[18px] py-3 font-semibold">Tariff</th>
                         <th class="px-[18px] py-3 font-semibold">Status</th>
                     </tr>
                 </thead>
@@ -102,6 +103,19 @@
 
                         <td class="whitespace-nowrap px-[18px] py-3.5">
                             <div class="flex items-center gap-2">
+                                <span class="inline-flex rounded-md bg-canvas px-2 py-1 text-[12px] font-medium text-ink">
+                                    {{ $log->tarifFormatted() }}
+                                </span>
+
+                                <span class="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
+                                    <x-icon :name="$log->jenis_kendaraan === 'mobil' ? 'car' : 'motor'" class="size-3.5" />
+                                    {{ $log->jenisKendaraanLabel() }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="whitespace-nowrap px-[18px] py-3.5">
+                            <div class="flex items-center gap-2">
                                 @if ($log->waktu_keluar === null)
                                 <span
                                     class="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11.5px] font-medium text-brand">
@@ -123,7 +137,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-[18px] py-14 text-center">
+                        <td colspan="8" class="px-[18px] py-14 text-center">
                             <span class="mx-auto grid size-10 place-items-center rounded-full bg-subtle text-ink-muted">
                                 <x-icon name="activity" class="size-5" />
                             </span>

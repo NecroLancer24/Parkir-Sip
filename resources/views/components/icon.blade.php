@@ -24,6 +24,14 @@
             <path d="M9 17V7h4a3 3 0 0 1 0 6H9" />
             @break
 
+        @case('motor')
+            <circle cx="5" cy="17" r="3" />
+            <circle cx="19" cy="17" r="3" />
+            <path d="M8 17h5l3-6h2" />
+            <path d="m12 8 3 3" />
+            <circle cx="14" cy="8" r="1.5" />
+            @break
+
         @case('devices')
             <rect width="16" height="16" x="4" y="4" rx="2" />
             <rect width="6" height="6" x="9" y="9" rx="1" />
