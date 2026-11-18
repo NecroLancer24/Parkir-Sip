@@ -66,8 +66,8 @@ class DashboardController extends Controller
                 'slots.lokasi',
                 'pengguna.nama as nama_pengguna',
             ])
-            ->orderBy('slots.nomer_slot')
             ->orderBy('parking_log.waktu_masuk', 'desc')
+            ->orderBy('slots.nomer_slot')
             ->paginate(15)
             ->withQueryString();
 
