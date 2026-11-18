@@ -176,6 +176,16 @@
                     </div>
 
                     <div>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Vehicle</dt>
+                        <dd class="mt-1.5 text-[12.5px] font-medium text-ink">{{ $log->jenisKendaraanLabel() }}</dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Tariff</dt>
+                        <dd class="mt-1.5 text-[12.5px] font-semibold text-ink">{{ $log->tarifFormatted() }}</dd>
+                    </div>
+
+                    <div>
                         <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Plate text</dt>
                         <dd class="mt-1.5 font-mono text-[12.5px] text-ink">{{ $plate ?: '-' }}</dd>
                     </div>

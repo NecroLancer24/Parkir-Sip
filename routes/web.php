@@ -1,20 +1,48 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
-Route::redirect('/', '/dashboard');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])
+        ->name('login');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:6,1')
+        ->name('login.store');
 
-Route::get('/parking-log', [DashboardController::class, 'parkingLog'])
-    ->name('parking-log');
+    Route::get('/register', [AuthController::class, 'showRegister'])
+        ->name('register');
 
-Route::get('/parking-log/{log}', [DashboardController::class, 'show'])
-    ->name('parking-log.show');
+    Route::post('/register', [AuthController::class, 'register'])
+        ->name('register.store');
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
+
+Route::middleware('auth')->group(function () {
+    Route::redirect('/', '/dashboard');
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    Route::get('/parking-log', [DashboardController::class, 'parkingLog'])
+        ->name('parking-log');
+
+    Route::get('/parking-log/export', [DashboardController::class, 'exportParkingLog'])
+        ->name('parking-log.export');
+
+    Route::get('/parking-log/{log}', [DashboardController::class, 'show'])
+        ->name('parking-log.show');
+
+    Route::get('/slots/{slot}', [DashboardController::class, 'slotShow'])
+        ->name('slots.show');
+});
 
 Route::get('/plate-captures/file/{path}', [DashboardController::class, 'plateFile'])
     ->where('path', '.*')

@@ -12,7 +12,7 @@ class parking_log extends Model
 
     protected $primaryKey = 'id_log';
 
-    protected $fillable = ['uuid_pengguna', 'id_slot', 'id_sensor', 'plat_image', 'waktu_masuk', 'waktu_keluar'];
+    protected $fillable = ['uuid_pengguna', 'id_slot', 'id_sensor', 'jenis_kendaraan', 'plat_image', 'waktu_masuk', 'waktu_keluar'];
 
     protected $casts = [
         'waktu_masuk' => 'datetime',
@@ -68,5 +68,57 @@ class parking_log extends Model
     public function plateText(): ?string
     {
         return $this->sensor?->plateText();
+    }
+
+    /**
+     * The billable parking duration in whole hours.
+     *
+     * A partial hour is billed as a full hour, and the first hour is the
+     * minimum. Active entries are billed up to the current time.
+     */
+    public function durasiTagihan(): int
+    {
+        if ($this->waktu_masuk === null) {
+            return 0;
+        }
+
+        $minutes = $this->waktu_masuk->diffInMinutes($this->waktu_keluar ?? now());
+
+        return max(1, (int) ceil($minutes / 60));
+    }
+
+    /**
+     * The parking tariff in rupiah for this entry.
+     *
+     * The first hour costs 2k for a motor and 3k for a car; every
+     * additional hour adds 1k.
+     */
+    public function tarifParkir(): int
+    {
+        $hours = $this->durasiTagihan();
+
+        if ($hours === 0) {
+            return 0;
+        }
+
+        $firstHour = $this->jenis_kendaraan === 'mobil' ? 3000 : 2000;
+
+        return $firstHour + (($hours - 1) * 1000);
+    }
+
+    /**
+     * The parking tariff formatted for display.
+     */
+    public function tarifFormatted(): string
+    {
+        return 'Rp '.number_format($this->tarifParkir(), 0, ',', '.');
+    }
+
+    /**
+     * The vehicle type label shown to operators.
+     */
+    public function jenisKendaraanLabel(): string
+    {
+        return ucfirst((string) $this->jenis_kendaraan);
     }
 }

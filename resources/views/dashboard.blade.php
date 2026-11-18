@@ -16,14 +16,6 @@
                 <x-icon name="calendar" class="size-3.5 text-ink-muted" />
                 Today, {{ now()->format('M j, Y') }}
             </button>
-
-            <button
-                type="button"
-                class="inline-flex h-8 items-center gap-2 rounded-lg border border-line bg-white px-3 text-[12px] font-medium text-ink-soft transition-colors hover:bg-subtle"
-            >
-                <x-icon name="download" class="size-3.5 text-ink-muted" />
-                Export
-            </button>
         </div>
     </div>
 
@@ -245,91 +237,38 @@
         </section>
     </div>
 
-    {{-- Parking slots --}}
-    <section class="mt-6 flex min-h-[330px] flex-col rounded-xl border border-line-soft bg-white shadow-card">
-        <div class="flex flex-wrap items-start justify-between gap-3 px-[18px] pt-4">
+    {{-- Parking slots availability preview --}}
+    @php
+        $activeSlots = $activeFloor ? $activeFloor['slots'] : collect();
+        $activeAvailable = max($activeSlots->count() - $activeSlots->where('status_slot', true)->count(), 0);
+    @endphp
+
+    <section id="floor-plan" class="mt-6 flex flex-col rounded-xl border border-line-soft bg-white shadow-card">
+        <div class="flex flex-wrap items-start justify-between gap-3 px-[18px] pt-[18px]">
             <div>
-                <h2 class="text-[15px] font-semibold text-ink">Parking slots</h2>
-                <p class="mt-1 text-[11.5px] text-ink-muted">
-                    Level 01 <span class="px-0.5">·</span> 1 of 3 slots available
-                </p>
+                <h2 class="text-[14px] font-medium text-ink">Parking slots</h2>
+                @if ($activeFloor)
+                    <p class="mt-1 text-[10px] text-ink-muted">
+                        {{ $activeFloor['label'] }} · {{ $activeAvailable }} of {{ $activeSlots->count() }} slots available
+                    </p>
+                @endif
             </div>
 
-            <a href="#" class="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-brand hover:text-brand-strong">
+            <a href="{{ route('parking-log') }}" class="inline-flex items-center gap-[5px] text-[11px] font-semibold text-brand hover:text-brand-strong">
                 View all slots
-                <x-icon name="arrow-right" class="size-3.5" />
+                <x-icon name="trend-up" class="size-3.5" />
             </a>
         </div>
 
-        <div class="px-[18px] pt-4">
-            <div class="flex h-[30px] items-center justify-center gap-1.5 rounded-md border-y border-brand-line bg-brand-soft text-[11px]">
-                <span class="font-semibold text-brand">Zone A</span>
-                <span class="text-brand/50">·</span>
-                <span class="text-brand/80">2/3 occupied</span>
-            </div>
-
-            <div class="mt-3.5 rounded-lg bg-subtle p-2">
-                <div class="grid grid-cols-3 gap-2">
-                    @foreach ([
-                        ['A01', true],
-                        ['A02', true],
-                        ['A03', false],
-                    ] as [$code, $isOccupied])
-                        <div @class([
-                            'flex h-[50px] flex-col items-center justify-center gap-0.5 rounded-md',
-                            'bg-line-soft' => $isOccupied,
-                            'bg-brand-soft' => ! $isOccupied,
-                        ])>
-                            @if ($isOccupied)
-                                <x-icon name="car" class="size-[18px] text-ink-muted" />
-                            @else
-                                <x-icon name="parking" class="size-[18px] text-brand" />
-                            @endif
-
-                            <span @class([
-                                'text-[9px] font-medium leading-none tracking-wide',
-                                'text-ink-muted' => $isOccupied,
-                                'text-brand' => ! $isOccupied,
-                            ])>{{ $code }}</span>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-2 flex h-[30px] items-center gap-3 px-2 text-[9px] font-medium uppercase tracking-[0.22em] text-ink-muted">
-                    <span class="h-px flex-1 bg-line"></span>
-                    <x-icon name="arrow-right" class="size-3" />
-                    <span>One way</span>
-                    <span class="h-px flex-1 bg-line"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-between gap-3 px-[18px] py-3.5">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10.5px] text-ink-soft">
-                <span class="inline-flex items-center gap-1.5">
-                    <span class="size-1.5 rounded-full bg-ink-muted"></span>
-                    Occupied
-                </span>
-                <span class="inline-flex items-center gap-1.5">
-                    <span class="size-1.5 rounded-full bg-brand"></span>
-                    Available
-                </span>
-                <span class="inline-flex items-center gap-1.5">
-                    <span class="size-1.5 rounded-full bg-warn"></span>
-                    Reserved
-                </span>
-            </div>
-
-            <p class="text-[10.5px] text-ink-muted">
-                1 available in <span class="font-medium text-ink-soft">Zone A</span>
-            </p>
-        </div>
-
-        <div class="flex items-center gap-1.5 border-t border-line-soft px-[18px] py-2.5 text-[10.5px] text-ink-muted">
-            <x-icon name="refresh" class="size-3" />
-            Last simulated update at 10:42:08
+        <div class="px-[18px] pb-[18px] pt-[14px]">
+            <x-floor-plan :floors="$floors" :active-floor-index="$activeFloorIndex" :selected-id="$slotTerpilih?->id_slot" />
         </div>
     </section>
+
+    {{-- Selected slot detail, shown below the floor plan preview --}}
+    @if ($slotTerpilih)
+        <x-slot-detail :slot-model="$slotTerpilih" :logs="$riwayatSlot" :active-log="$logAktifSlot" :floor-number="($activeFloor['number'] ?? 1)" />
+    @endif
 
     {{-- Recent activity --}}
     <section class="mt-6 rounded-xl border border-line-soft bg-white shadow-card">

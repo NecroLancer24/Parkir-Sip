@@ -1,11 +1,14 @@
+
 <?php
 
 namespace App\Http\Controllers;
 
+use App\Exports\ParkingLogExport;
 use App\Models\parking_log;
 use App\Models\sensor;
 use App\Models\slot;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,25 +20,69 @@ class DashboardController extends Controller
     /**
      * Display the parking management dashboard.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $totalSlots = slot::count();
         $occupiedSlots = slot::where('status_slot', true)->count();
         $availableSlots = $totalSlots - $occupiedSlots;
         $activeLogs = parking_log::whereNull('waktu_keluar')->count();
 
+        $slotTerpilih = $request->filled('slot')
+            ? slot::with('sensor')->find($request->integer('slot'))
+            : null;
+
+        $riwayatSlot = $slotTerpilih
+            ? $slotTerpilih->parkingLogs()
+            ->with(['pengguna', 'sensor'])
+            ->orderByDesc('waktu_masuk')
+            ->get()
+            : collect();
+
+        $slots = slot::with('sensor')->orderBy('nomer_slot')->get();
+
+        $floors = $slots
+            ->groupBy(fn(slot $slotModel) => $slotModel->lokasi ?? 'Lantai 1')
+            ->sortBy(fn($floorSlots, $label) => (int) filter_var($label, FILTER_SANITIZE_NUMBER_INT))
+            ->map(fn($floorSlots, $label) => [
+                'label' => $label,
+                'number' => (int) filter_var($label, FILTER_SANITIZE_NUMBER_INT),
+                'slots' => $floorSlots->sortBy('nomer_slot')->values(),
+            ])
+            ->values();
+
+        // Active floor: explicit ?lantai=, otherwise the floor of the selected slot.
+        $activeFloorIndex = $floors->search(
+            fn($floor) => $floor['label'] === 'Lantai ' . $request->integer('lantai'),
+        );
+
+        if ($activeFloorIndex === false && $slotTerpilih) {
+            $activeFloorIndex = $floors->search(
+                fn($floor) => $floor['slots']->contains('id_slot', $slotTerpilih->id_slot),
+            );
+        }
+
+        $activeFloorIndex = $activeFloorIndex === false ? 0 : $activeFloorIndex;
+
         return view('dashboard', [
             'statistik' => [
                 'total_slot' => $totalSlots,
                 'slot_terisi' => $occupiedSlots,
                 'slot_tersedia' => max($availableSlots, 0),
-                'persen_terisi' => $totalSlots > 0 ? round(($occupiedSlots / $totalSlots) * 100) : 0,
+                'persen_terisi' => $totalSlots > 0
+                    ? round(($occupiedSlots / $totalSlots) * 100)
+                    : 0,
             ],
-            'slots' => slot::with('sensor')->orderBy('nomer_slot')->get(),
+            'slots' => $slots,
+            'floors' => $floors,
+            'activeFloor' => $floors->get($activeFloorIndex),
+            'activeFloorIndex' => $activeFloorIndex,
             'riwayatTerbaru' => parking_log::with(['pengguna', 'slot'])
                 ->latest('waktu_masuk')
                 ->limit(5)
                 ->get(),
+            'slotTerpilih' => $slotTerpilih,
+            'riwayatSlot' => $riwayatSlot,
+            'logAktifSlot' => $riwayatSlot->firstWhere('waktu_keluar', null),
         ]);
     }
 
@@ -44,17 +91,46 @@ class DashboardController extends Controller
      */
     public function parkingLog(Request $request): View
     {
-        $cari = $request->string('q')->trim();
+        $cari = $request->string('q')->trim()->toString();
 
-        $riwayatParkir = parking_log::query()
+        return view('parking-log', [
+            'riwayatParkir' => $this->parkingLogQuery($cari)
+                ->paginate(15)
+                ->withQueryString(),
+            'cari' => $cari,
+        ]);
+    }
+
+    /**
+     * Download the current parking log search results as an Excel workbook.
+     */
+    public function exportParkingLog(Request $request): StreamedResponse
+    {
+        $cari = $request->string('q')->trim()->toString();
+
+        return (new ParkingLogExport($this->parkingLogQuery($cari)->get()))
+            ->download('parking-log-' . now()->format('Y-m-d') . '.xlsx');
+    }
+
+    /**
+     * Build the searchable parking log query shared by the table and export.
+     *
+     * @return Builder<parking_log>
+     */
+    private function parkingLogQuery(string $cari): Builder
+    {
+        return parking_log::query()
             ->with('sensor')
-            ->when($cari, function ($query) use ($cari) {
-                $query->where(function ($subQuery) use ($cari) {
+            ->when($cari !== '', function (Builder $query) use ($cari) {
+                $query->where(function (Builder $subQuery) use ($cari) {
                     $subQuery
                         ->where('slots.nomer_slot', 'like', "%{$cari}%")
                         ->orWhere('pengguna.nama', 'like', "%{$cari}%")
                         ->orWhere('pengguna.username', 'like', "%{$cari}%")
-                        ->orWhereRaw('CONVERT(sensors.plat_nomer USING utf8mb4) LIKE ?', ["%{$cari}%"]);
+                        ->orWhereRaw(
+                            'CONVERT(sensors.plat_nomer USING utf8mb4) LIKE ?',
+                            ["%{$cari}%"]
+                        );
                 });
             })
             ->join('slots', 'slots.id_slot', '=', 'parking_log.id_slot')
@@ -66,15 +142,8 @@ class DashboardController extends Controller
                 'slots.lokasi',
                 'pengguna.nama as nama_pengguna',
             ])
-            ->orderBy('parking_log.waktu_masuk', 'desc')
             ->orderBy('slots.nomer_slot')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('parking-log', [
-            'riwayatParkir' => $riwayatParkir,
-            'cari' => $cari->value(),
-        ]);
+            ->orderBy('parking_log.waktu_masuk', 'desc');
     }
 
     /**
@@ -86,6 +155,25 @@ class DashboardController extends Controller
 
         return view('parking-log-show', [
             'log' => $log,
+        ]);
+    }
+
+    /**
+     * Display a single slot with its current status and parking history.
+     */
+    public function slotShow(slot $slot): View
+    {
+        $slot->load('sensor');
+
+        $logs = $slot->parkingLogs()
+            ->with(['pengguna', 'sensor'])
+            ->orderByDesc('waktu_masuk')
+            ->get();
+
+        return view('slot-show', [
+            'slot' => $slot,
+            'riwayatSlot' => $logs,
+            'logAktif' => $logs->firstWhere('waktu_keluar', null),
         ]);
     }
 
