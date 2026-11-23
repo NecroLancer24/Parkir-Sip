@@ -1,4 +1,10 @@
 <x-layouts.app title="Parking overview">
+    @php
+        $activeSlots = $activeFloor ? $activeFloor['slots'] : collect();
+        $activeOccupied = $activeSlots->where('status_slot', true)->count();
+        $activeAvailable = max($activeSlots->count() - $activeOccupied, 0);
+    @endphp
+
     {{-- Page header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
