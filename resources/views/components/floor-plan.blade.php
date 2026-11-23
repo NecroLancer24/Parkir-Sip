@@ -151,7 +151,7 @@
         {{-- Sync note --}}
         <p class="flex items-center gap-1.5 text-[10px] leading-[normal] text-[#a0b0b8]">
             <x-icon name="refresh" class="size-3" />
-            Last simulated update at {{ now()->format('H:i:s') }}
+            Live sensor sync active · Updated at {{ now()->format('H:i:s') }}
         </p>
     </div>
 @else
