@@ -19,6 +19,9 @@ Route::middleware('guest')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register'])
         ->name('register.store');
+        
+    Route::get('/dashboard/live-data', [DashboardController::class, 'liveData'])
+    ->name('dashboard.live-data');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -101,127 +104,94 @@ Route::post('/upload-foto', function (Request $request) {
 });
 
 // 2. Menerima status 3 sensor ultrasonik dari ESP32-A (?s1=1&s2=0&s3=0)
-// s1 -> Lantai 1, s2 -> Lantai 2, s3 -> Lantai 3 (slot terisi dipilih secara acak/randomize)
+// Ketiga sensor berada di 1 area parkir (24 slot: A-01 s/d A-24) dengan penempatan acak
 Route::match(['get', 'post'], '/update-slot', function (Request $request) {
-    \Illuminate\Support\Facades\Cache::put('heartbeat_esp32a', now(), now()->addSeconds(20));
+    $jumlahSensorAktif = (int) $request->input('s1', 0)
+        + (int) $request->input('s2', 0)
+        + (int) $request->input('s3', 0);
 
-    $sensorLantai = [
-        'Lantai 1' => (int) $request->input('s1', 0) === 1,
-        'Lantai 2' => (int) $request->input('s2', 0) === 1,
-        'Lantai 3' => (int) $request->input('s3', 0) === 1,
-    ];
+    $slotArea = DB::table('slots')
+        ->orderBy('nomer_slot')
+        ->limit(24)
+        ->get();
 
+    $slotTerisiSekarang = $slotArea->where('status_slot', true)->values();
+    $jumlahTerisiLama = $slotTerisiSekarang->count();
     $uuidPengguna = DB::table('pengguna')->value('uuid_pengguna');
-    $hasilAcak = [];
 
-    foreach ($sensorLantai as $namaLantai => $sensorTerdeteksi) {
-        $slotTerisiSekarang = DB::table('slots')
-            ->where('lokasi', $namaLantai)
-            ->where('status_slot', true)
+    if ($jumlahSensorAktif > $jumlahTerisiLama) {
+        // Ada kendaraan baru masuk: pilih slot kosong secara acak
+        $selisihMasuk = $jumlahSensorAktif - $jumlahTerisiLama;
+        $slotKosongAcak = DB::table('slots')
+            ->whereIn('id_slot', $slotArea->pluck('id_slot'))
+            ->where('status_slot', false)
+            ->inRandomOrder()
+            ->limit($selisihMasuk)
             ->get();
 
-        if ($sensorTerdeteksi) {
-            // Jika lantai ini sebelumnya kosong, pilih 1 slot secara acak (randomize) untuk ditempati
-            if ($slotTerisiSekarang->isEmpty()) {
-                $slotAcak = DB::table('slots')
-                    ->where('lokasi', $namaLantai)
-                    ->where('status_slot', false)
-                    ->inRandomOrder()
-                    ->first();
+        foreach ($slotKosongAcak as $slotBaru) {
+            DB::table('slots')
+                ->where('id_slot', $slotBaru->id_slot)
+                ->update(['status_slot' => true, 'updated_at' => now()]);
 
-                if ($slotAcak) {
-                    DB::table('slots')
-                        ->where('id_slot', $slotAcak->id_slot)
-                        ->update([
-                            'status_slot' => true,
-                            'updated_at'  => now(),
-                        ]);
-
-                    // Hubungkan dengan foto terbaru dari ESP32-CAM (jika baru masuk < 3 menit) atau buat log baru
-                    $logFotoBaru = DB::table('parking_log')
-                        ->whereNull('waktu_keluar')
-                        ->whereNotNull('plat_image')
-                        ->where('waktu_masuk', '>=', now()->subMinutes(3))
-                        ->orderByDesc('waktu_masuk')
-                        ->first();
-
-                    if ($logFotoBaru) {
-                        DB::table('parking_log')
-                            ->where('id_log', $logFotoBaru->id_log)
-                            ->update([
-                                'id_slot'    => $slotAcak->id_slot,
-                                'id_sensor'  => $slotAcak->id_sensor,
-                                'updated_at' => now(),
-                            ]);
-                    } elseif ($uuidPengguna) {
-                        DB::table('parking_log')->insert([
-                            'uuid_pengguna'   => $uuidPengguna,
-                            'id_slot'         => $slotAcak->id_slot,
-                            'id_sensor'       => $slotAcak->id_sensor,
-                            'jenis_kendaraan' => 'motor',
-                            'waktu_masuk'     => now(),
-                            'waktu_keluar'    => null,
-                            'created_at'      => now(),
-                            'updated_at'      => now(),
-                        ]);
-                    }
-
-                    $hasilAcak[$namaLantai] = $slotAcak->nomer_slot;
-                }
-            } else {
-                $hasilAcak[$namaLantai] = $slotTerisiSekarang->pluck('nomer_slot')->implode(', ');
+            if ($uuidPengguna) {
+                DB::table('parking_log')->insert([
+                    'uuid_pengguna'   => $uuidPengguna,
+                    'id_slot'         => $slotBaru->id_slot,
+                    'id_sensor'       => $slotBaru->id_sensor,
+                    'jenis_kendaraan' => 'mobil',
+                    'waktu_masuk'     => now(),
+                    'waktu_keluar'    => null,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
             }
-        } else {
-            // Sensor kosong (0): bebaskan semua slot di lantai ini & tutup log parkir aktif
-            if ($slotTerisiSekarang->isNotEmpty()) {
-                $idSlots = $slotTerisiSekarang->pluck('id_slot');
+        }
+    } elseif ($jumlahSensorAktif < $jumlahTerisiLama) {
+        // Ada kendaraan keluar: bebaskan sejumlah slot yang terisi & catat waktu_keluar
+        $selisihKeluar = $jumlahTerisiLama - $jumlahSensorAktif;
+        $slotKeluar = $slotTerisiSekarang->take($selisihKeluar);
 
-                DB::table('slots')
-                    ->whereIn('id_slot', $idSlots)
-                    ->update([
-                        'status_slot' => false,
-                        'updated_at'  => now(),
-                    ]);
+        foreach ($slotKeluar as $slotLama) {
+            DB::table('slots')
+                ->where('id_slot', $slotLama->id_slot)
+                ->update(['status_slot' => false, 'updated_at' => now()]);
 
+            $logAktif = DB::table('parking_log')
+                ->where('id_slot', $slotLama->id_slot)
+                ->whereNull('waktu_keluar')
+                ->orderByDesc('waktu_masuk')
+                ->first();
+
+            if ($logAktif) {
                 DB::table('parking_log')
-                    ->whereIn('id_slot', $idSlots)
-                    ->whereNull('waktu_keluar')
-                    ->update([
-                        'waktu_keluar' => now(),
-                        'updated_at'   => now(),
-                    ]);
+                    ->where('id_log', $logAktif->id_log)
+                    ->update(['waktu_keluar' => now(), 'updated_at' => now()]);
             }
-            $hasilAcak[$namaLantai] = 'Kosong';
         }
     }
 
     return response()->json([
         'status' => 'success',
-        'lantai' => $hasilAcak,
+        'terisi' => $jumlahSensorAktif,
     ]);
 });
 
-// 3. Acak ulang posisi slot terisi pada lantai yang sensornya sedang aktif
+// 3. Acak ulang posisi slot terisi di area 24 slot
 Route::get('/randomize-slot', function () {
-    foreach (['Lantai 1', 'Lantai 2', 'Lantai 3'] as $namaLantai) {
-        $jumlahTerisi = DB::table('slots')
-            ->where('lokasi', $namaLantai)
-            ->where('status_slot', true)
-            ->count();
+    $slotIds = DB::table('slots')->orderBy('nomer_slot')->limit(24)->pluck('id_slot');
+    $jumlahTerisi = DB::table('slots')->whereIn('id_slot', $slotIds)->where('status_slot', true)->count();
 
-        if ($jumlahTerisi > 0) {
-            DB::table('slots')->where('lokasi', $namaLantai)->update(['status_slot' => false]);
+    if ($jumlahTerisi > 0) {
+        DB::table('slots')->whereIn('id_slot', $slotIds)->update(['status_slot' => false]);
 
-            $slotBaru = DB::table('slots')
-                ->where('lokasi', $namaLantai)
-                ->inRandomOrder()
-                ->limit($jumlahTerisi)
-                ->pluck('id_slot');
+        $slotBaru = DB::table('slots')
+            ->whereIn('id_slot', $slotIds)
+            ->inRandomOrder()
+            ->limit($jumlahTerisi)
+            ->pluck('id_slot');
 
-            DB::table('slots')
-                ->whereIn('id_slot', $slotBaru)
-                ->update(['status_slot' => true, 'updated_at' => now()]);
-        }
+        DB::table('slots')->whereIn('id_slot', $slotBaru)->update(['status_slot' => true, 'updated_at' => now()]);
     }
 
     return redirect()->route('dashboard');

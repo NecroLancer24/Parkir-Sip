@@ -31,25 +31,9 @@
                 <x-icon name="parking" :stroke="2" class="size-[19px]" />
             </span>
             <span class="text-[19px] font-semibold tracking-[-0.01em] text-ink">Parkir Sip</span>
-        </a>
+        </a> </span>
 
-        <button
-            type="button"
-            class="mt-7 flex w-full items-center gap-2.5 rounded-xl border border-line-soft bg-subtle p-2 text-left transition-colors hover:border-line"
-        >
-            <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
-                <x-icon name="building" class="size-4" />
-            </span>
-
-            <span class="min-w-0 flex-1">
-                <span class="block truncate text-[12.5px] font-semibold leading-4 text-ink">{{ auth()->user()->organization ?: 'Central Park' }}</span>
-                <span class="block truncate text-[11px] leading-4 text-ink-muted">Operator workspace</span>
-            </span>
-
-            <x-icon name="chevron-down" class="size-4 shrink-0 text-ink-muted" />
-        </button>
-
-        <p class="mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Workspace</p>
+        <p class="mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">TAB MENU</p>
 
         <nav class="mt-2 space-y-2" aria-label="Main">
             <x-nav-item :href="route('dashboard')" icon="dashboard" :active="request()->routeIs('dashboard')">Overview</x-nav-item>
@@ -85,23 +69,26 @@
 
     <div class="flex min-h-screen flex-col lg:pl-[216px]">
         <header class="flex h-[76px] shrink-0 items-center gap-4 bg-white px-5 sm:px-7">
-            <div class="flex min-w-0 items-center gap-2.5 text-[12.5px]">
-                <span class="grid size-6 shrink-0 place-items-center rounded-md border border-line-soft text-ink-muted">
-                    <x-icon name="panel" class="size-3.5" />
-                </span>
-                <span class="text-ink-muted">/</span>
-                <span class="truncate font-medium text-ink-soft">{{ $breadcrumb }}</span>
-            </div>
-
+           <div class="flex items-center">
+    <img
+        src="{{ asset('images/logo-jti-new.svg') }}"
+        alt="Logo JTI Polije"
+        class="h-11 w-auto object-contain"
+    >
+    <img
+        src="{{ asset('images/trk.svg') }}"
+        alt="Logo Teknologi Rekayasa Komputer"
+        class="h-16 w-auto object-contain"
+    >
+</div>
             <div class="ml-auto flex items-center gap-5">
                 <label class="hidden h-9 w-[232px] items-center gap-2 rounded-lg bg-canvas px-3 sm:flex">
                     <x-icon name="search" class="size-4 shrink-0 text-ink-muted" />
                     <input
                         type="search"
-                        placeholder="Search parking log..."
+                        placeholder="Cari..."
                         class="w-full min-w-0 bg-transparent text-[12px] text-ink placeholder:text-ink-muted focus:outline-none"
                     >
-                    <kbd class="shrink-0 rounded border border-line bg-white px-1 py-0.5 text-[10px] leading-none text-ink-muted">⌘K</kbd>
                 </label>
 
                 <div class="flex shrink-0 items-center gap-2 text-[12px] text-ink-soft">
