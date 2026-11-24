@@ -32,7 +32,7 @@ class AuthController extends Controller
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()
                 ->withInput($request->only('email'))
-                ->withErrors(['email' => 'These credentials do not match our records.']);
+                ->withErrors(['email' => 'Email atau kata sandi tidak cocok dengan data kami.']);
         }
 
         $request->session()->regenerate();

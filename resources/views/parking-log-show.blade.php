@@ -1,4 +1,4 @@
-<x-layouts.app title="Parking log detail" breadcrumb="Parking log / Detail">
+<x-layouts.app title="Detail Riwayat Parkir" breadcrumb="Riwayat Parkir / Detail">
     @php
         $image = $log->plateImageUrl();
         $plate = $log->plateText();
@@ -11,20 +11,20 @@
             $parts = [];
 
             if ($duration->d > 0) {
-                $parts[] = $duration->d.'d';
+                $parts[] = $duration->d.' hari';
             }
 
             if ($duration->h > 0) {
-                $parts[] = $duration->h.'h';
+                $parts[] = $duration->h.' jam';
             }
 
-            $parts[] = $duration->i.'m';
+            $parts[] = $duration->i.' mnt';
 
             $durationLabel = implode(' ', $parts);
         }
     @endphp
 
-    {{-- Page header --}}
+    {{-- Judul halaman --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <a
@@ -32,7 +32,7 @@
                 class="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-ink-muted transition-colors hover:text-brand"
             >
                 <x-icon name="arrow-left" class="size-3.5" />
-                Back to parking log
+                Kembali ke riwayat parkir
             </a>
 
             <h1 class="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-ink">
@@ -40,28 +40,28 @@
             </h1>
 
             <p class="mt-1.5 text-[12.5px] text-ink-soft">
-                Slot {{ $log->slot?->nomer_slot ?? '-' }}
+                Slot {{ $log->slot?->nomer_slot ?? 'belum ditentukan' }}
                 <span class="px-1 text-ink-muted">·</span>
-                {{ $log->slot?->lokasi ?? 'Unknown location' }}
+                {{ $log->slot?->lokasi ?? 'Lokasi belum diketahui' }}
             </p>
         </div>
 
         @if ($isParked)
             <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-[11px] font-medium text-brand">
                 <span class="size-1.5 rounded-full bg-brand"></span>
-                Currently parked
+                Sedang parkir
             </span>
         @else
             <span class="inline-flex items-center gap-1.5 rounded-full bg-line-soft px-3 py-1.5 text-[11px] font-medium text-ink-soft">
                 <span class="size-1.5 rounded-full bg-ink-muted"></span>
-                Completed
+                Selesai
             </span>
         @endif
     </div>
 
     <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div class="space-y-5">
-            {{-- Plate capture --}}
+            {{-- Tangkapan plat --}}
             <section class="overflow-hidden rounded-xl border border-line-soft bg-white shadow-card">
                 <div class="flex flex-wrap items-center justify-between gap-3 px-[18px] py-4">
                     <div class="flex items-center gap-2.5">
@@ -70,8 +70,8 @@
                         </span>
 
                         <div>
-                            <h2 class="text-[15px] font-semibold text-ink">Plate capture</h2>
-                            <p class="mt-0.5 text-[11.5px] text-ink-muted">Snapshot from the ESP32-CAM at the entry gate</p>
+                            <h2 class="text-[15px] font-semibold text-ink">Tangkapan plat</h2>
+                            <p class="mt-0.5 text-[11.5px] text-ink-muted">Gambar dari ESP32-CAM di gerbang masuk</p>
                         </div>
                     </div>
 
@@ -82,7 +82,7 @@
                             rel="noopener"
                             class="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-brand hover:text-brand-strong"
                         >
-                            Open full size
+                            Buka ukuran penuh
                             <x-icon name="external-link" class="size-3.5" />
                         </a>
                     @endif
@@ -92,7 +92,7 @@
                     @if ($image)
                         <img
                             src="{{ $image }}"
-                            alt="Plate capture for {{ $plate ?: 'slot '.$log->slot?->nomer_slot }}"
+                            alt="Tangkapan plat untuk {{ $plate ?: 'slot '.($log->slot?->nomer_slot ?? 'belum ditentukan') }}"
                             class="mx-auto max-h-[420px] w-full object-contain"
                         >
                     @else
@@ -100,9 +100,9 @@
                             <span class="grid size-11 place-items-center rounded-full bg-white/5 text-white/40">
                                 <x-icon name="camera" class="size-5" />
                             </span>
-                            <p class="text-[12.5px] font-medium text-white/70">No capture available</p>
+                            <p class="text-[12.5px] font-medium text-white/70">Belum ada tangkapan</p>
                             <p class="max-w-[280px] text-[11px] leading-relaxed text-white/40">
-                                The ESP32-CAM has not uploaded an image for this entry yet.
+                                ESP32-CAM belum mengunggah gambar untuk catatan ini.
                             </p>
                         </div>
                     @endif
@@ -111,105 +111,105 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 px-[18px] py-3.5">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <span class="inline-flex rounded-md bg-canvas px-2.5 py-1 font-mono text-[12px] font-semibold tracking-wide text-ink">
-                            {{ $plate ?: 'Plate not recognised' }}
+                            {{ $plate ?: 'Plat belum dikenali' }}
                         </span>
 
                         <span class="text-[10.5px] text-ink-muted">
-                            {{ $image ? 'Image captured by ESP32-CAM' : 'No image attached to this log' }}
+                            {{ $image ? 'Gambar diambil oleh ESP32-CAM' : 'Tidak ada gambar pada catatan ini' }}
                         </span>
                     </div>
 
                     <span class="inline-flex items-center gap-1.5 text-[10.5px] text-ink-muted">
                         <x-icon name="clock" class="size-3" />
-                        {{ optional($log->waktu_masuk)->format('d M Y, H:i') ?? '-' }}
+                        {{ optional($log->waktu_masuk)->translatedFormat('d M Y, H:i') ?? '-' }}
                     </span>
                 </div>
             </section>
 
-            {{-- Record details --}}
+            {{-- Detail catatan --}}
             <section class="rounded-xl border border-line-soft bg-white shadow-card">
                 <div class="border-b border-line-soft px-[18px] py-4">
-                    <h2 class="text-[15px] font-semibold text-ink">Record details</h2>
-                    <p class="mt-1 text-[11.5px] text-ink-muted">Every value stored for this parking log entry</p>
+                    <h2 class="text-[15px] font-semibold text-ink">Detail catatan</h2>
+                    <p class="mt-1 text-[11.5px] text-ink-muted">Seluruh nilai yang tersimpan pada catatan parkir ini</p>
                 </div>
 
                 <dl class="grid gap-x-6 gap-y-5 px-[18px] py-5 sm:grid-cols-2">
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Log ID</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">ID Log</dt>
                         <dd class="mt-1.5 font-mono text-[12.5px] text-ink">#{{ $log->id_log }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Sensor ID</dt>
-                        <dd class="mt-1.5 font-mono text-[12.5px] text-ink">#{{ $log->id_sensor }}</dd>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">ID Sensor</dt>
+                        <dd class="mt-1.5 font-mono text-[12.5px] text-ink">{{ $log->id_sensor ? '#'.$log->id_sensor : '-' }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">User</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Pengguna</dt>
                         <dd class="mt-1.5 text-[12.5px] font-medium text-ink">{{ $log->pengguna?->nama ?? '-' }}</dd>
                         <dd class="mt-0.5 font-mono text-[11px] text-ink-muted">{{ $log->pengguna?->username ?? '-' }}</dd>
                     </div>
 
                     <div>
                         <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Slot</dt>
-                        <dd class="mt-1.5 text-[12.5px] font-medium text-ink">{{ $log->slot?->nomer_slot ?? '-' }}</dd>
+                        <dd class="mt-1.5 text-[12.5px] font-medium text-ink">{{ $log->slot?->nomer_slot ?? 'Belum ditentukan' }}</dd>
                         <dd class="mt-0.5 text-[11px] text-ink-muted">{{ $log->slot?->lokasi ?? '-' }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Entry time</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Waktu masuk</dt>
                         <dd class="mt-1.5 text-[12.5px] text-ink">
-                            {{ optional($log->waktu_masuk)->format('d M Y, H:i:s') ?? '-' }}
+                            {{ optional($log->waktu_masuk)->translatedFormat('d M Y, H:i:s') ?? '-' }}
                         </dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Exit time</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Waktu keluar</dt>
                         <dd class="mt-1.5 text-[12.5px] text-ink">
-                            {{ optional($log->waktu_keluar)->format('d M Y, H:i:s') ?? 'Still parked' }}
+                            {{ optional($log->waktu_keluar)->translatedFormat('d M Y, H:i:s') ?? 'Masih parkir' }}
                         </dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Duration</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Durasi</dt>
                         <dd class="mt-1.5 text-[12.5px] text-ink">{{ $durationLabel }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Vehicle</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Kendaraan</dt>
                         <dd class="mt-1.5 text-[12.5px] font-medium text-ink">{{ $log->jenisKendaraanLabel() }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Tariff</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Tarif</dt>
                         <dd class="mt-1.5 text-[12.5px] font-semibold text-ink">{{ $log->tarifFormatted() }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Plate text</dt>
+                        <dt class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Teks plat</dt>
                         <dd class="mt-1.5 font-mono text-[12.5px] text-ink">{{ $plate ?: '-' }}</dd>
                     </div>
                 </dl>
             </section>
         </div>
 
-        {{-- Summary sidebar --}}
+        {{-- Ringkasan sesi --}}
         <aside class="space-y-5">
             <section class="rounded-xl border border-line-soft bg-white p-[18px] shadow-card">
-                <h2 class="text-[15px] font-semibold text-ink">Session summary</h2>
-                <p class="mt-1 text-[11.5px] text-ink-muted">Entry, exit, and occupancy at a glance</p>
+                <h2 class="text-[15px] font-semibold text-ink">Ringkasan sesi</h2>
+                <p class="mt-1 text-[11.5px] text-ink-muted">Masuk, keluar, dan durasi sekilas</p>
 
                 <div class="mt-4 grid grid-cols-2 gap-3">
                     <div class="rounded-lg bg-subtle p-3">
                         <span class="grid size-7 place-items-center rounded-md bg-white text-brand">
                             <x-icon name="entry" class="size-3.5" />
                         </span>
-                        <p class="mt-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">Entry</p>
+                        <p class="mt-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">Masuk</p>
                         <p class="mt-1 text-[12px] font-medium text-ink">
                             {{ optional($log->waktu_masuk)->format('H:i') ?? '-' }}
                         </p>
                         <p class="text-[10.5px] text-ink-muted">
-                            {{ optional($log->waktu_masuk)->format('d M Y') ?? '-' }}
+                            {{ optional($log->waktu_masuk)->translatedFormat('d M Y') ?? '-' }}
                         </p>
                     </div>
 
@@ -217,12 +217,12 @@
                         <span class="grid size-7 place-items-center rounded-md bg-white text-ink-soft">
                             <x-icon name="gate" class="size-3.5" />
                         </span>
-                        <p class="mt-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">Exit</p>
+                        <p class="mt-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">Keluar</p>
                         <p class="mt-1 text-[12px] font-medium text-ink">
                             {{ optional($log->waktu_keluar)->format('H:i') ?? '--:--' }}
                         </p>
                         <p class="text-[10.5px] text-ink-muted">
-                            {{ optional($log->waktu_keluar)->format('d M Y') ?? 'Still parked' }}
+                            {{ optional($log->waktu_keluar)->translatedFormat('d M Y') ?? 'Masih parkir' }}
                         </p>
                     </div>
                 </div>
@@ -230,7 +230,7 @@
                 <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-line-soft px-3 py-3">
                     <span class="inline-flex items-center gap-2 text-[11.5px] text-ink-soft">
                         <x-icon name="timer" class="size-4 text-ink-muted" />
-                        Duration
+                        Durasi
                     </span>
                     <span class="text-[12.5px] font-semibold text-ink">{{ $durationLabel }}</span>
                 </div>
@@ -238,14 +238,14 @@
                 <div class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-line-soft px-3 py-3">
                     <span class="inline-flex items-center gap-2 text-[11.5px] text-ink-soft">
                         <x-icon name="pin" class="size-4 text-ink-muted" />
-                        Location
+                        Lokasi
                     </span>
                     <span class="text-[12px] font-medium text-ink">{{ $log->slot?->lokasi ?? '-' }}</span>
                 </div>
             </section>
 
             <section class="rounded-xl border border-line-soft bg-white p-[18px] shadow-card">
-                <h2 class="text-[15px] font-semibold text-ink">Vehicle owner</h2>
+                <h2 class="text-[15px] font-semibold text-ink">Pemilik kendaraan</h2>
 
                 <div class="mt-4 flex items-center gap-3">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-soft text-brand">
@@ -259,7 +259,7 @@
                 </div>
 
                 <div class="mt-4 rounded-lg bg-subtle px-3 py-3">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Registered plate</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Plat terdaftar</p>
                     <p class="mt-1.5 font-mono text-[13px] font-semibold tracking-wide text-ink">{{ $plate ?: '-' }}</p>
                 </div>
             </section>

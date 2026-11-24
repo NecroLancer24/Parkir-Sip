@@ -13,6 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+<<<<<<< Updated upstream
+=======
+        // CSRF token exceptions
+        $middleware->validateCsrfTokens(except: [
+            'upload-foto',
+            'update-slot',
+        ]);
+
+        // Authentication redirects
+>>>>>>> Stashed changes
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('dashboard'));
     })

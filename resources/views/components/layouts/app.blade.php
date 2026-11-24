@@ -1,4 +1,4 @@
-@props(['title' => 'Parking overview', 'breadcrumb' => 'Overview'])
+@props(['title' => 'Ringkasan Parkir', 'breadcrumb' => 'Ringkasan'])
 
 @php
     $headerTime = now();
@@ -33,6 +33,7 @@
             <span class="text-[19px] font-semibold tracking-[-0.01em] text-ink">Parkir Sip</span>
         </a>
 
+<<<<<<< Updated upstream
         <button
             type="button"
             class="mt-7 flex w-full items-center gap-2.5 rounded-xl border border-line-soft bg-subtle p-2 text-left transition-colors hover:border-line"
@@ -50,10 +51,13 @@
         </button>
 
         <p class="mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Workspace</p>
+=======
+        <p class="mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">MENU UTAMA</p>
+>>>>>>> Stashed changes
 
-        <nav class="mt-2 space-y-2" aria-label="Main">
-            <x-nav-item :href="route('dashboard')" icon="dashboard" :active="request()->routeIs('dashboard')">Overview</x-nav-item>
-            <x-nav-item :href="route('parking-log')" icon="activity" :active="request()->routeIs('parking-log*')">Parking log</x-nav-item>
+        <nav class="mt-2 space-y-2" aria-label="Menu utama">
+            <x-nav-item :href="route('dashboard')" icon="dashboard" :active="request()->routeIs('dashboard')">Ringkasan</x-nav-item>
+            <x-nav-item :href="route('parking-log')" icon="activity" :active="request()->routeIs('parking-log*')">Riwayat parkir</x-nav-item>
         </nav>
 
         <div class="mt-auto border-t border-line-soft pt-4">
@@ -73,8 +77,8 @@
                     <button
                         type="submit"
                         class="grid size-7 place-items-center rounded-md text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
-                        title="Log out"
-                        aria-label="Log out"
+                        title="Keluar"
+                        aria-label="Keluar"
                     >
                         <x-icon name="log-out" class="size-4" />
                     </button>
@@ -107,7 +111,7 @@
                 <div class="flex shrink-0 items-center gap-2 text-[12px] text-ink-soft">
                     <x-icon name="clock" class="size-4 text-ink-muted" />
                     <time data-live-clock datetime="{{ $headerTime->toIso8601String() }}">
-                        <span data-clock-time>{{ $headerTime->format('g:i A') }}</span>
+                        <span data-clock-time>{{ $headerTime->format('H:i') }}</span>
                         <span class="text-ink-muted">-</span>
                         <span data-clock-offset>{{ $offsetLabel }}</span>
                     </time>

@@ -4,9 +4,25 @@ use App\Models\parking_log;
 use App\Models\sensor;
 use App\Models\slot;
 use Database\Seeders\ParkingDataSeeder;
+use Database\Seeders\SingleFloorParkingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+test('the single floor seeder creates twenty-four available slots on the first floor', function () {
+    $this->seed(SingleFloorParkingSeeder::class);
+
+    expect(slot::count())->toBe(24)
+        ->and(sensor::count())->toBe(24)
+        ->and(slot::where('lokasi', 'Lantai 1')->count())->toBe(24)
+        ->and(slot::where('status_slot', true)->count())->toBe(0);
+
+    // Running it again must not duplicate the slots.
+    $this->seed(SingleFloorParkingSeeder::class);
+
+    expect(slot::count())->toBe(24)
+        ->and(sensor::count())->toBe(24);
+});
 
 test('the seeder creates seventy-two slots across three floors', function () {
     $this->seed(ParkingDataSeeder::class);

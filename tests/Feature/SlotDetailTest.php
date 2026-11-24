@@ -67,19 +67,20 @@ test('the slot detail page shows the slot status and its parking history', funct
         ->assertOk()
         ->assertSee('Slot A-07')
         ->assertSee('Lantai 2')
-        ->assertSee('Occupied')
+        ->assertSee('Terisi')
         ->assertSee('B 1234 ABC')
         ->assertSee('Ada Lovelace')
         ->assertSee('Rp 4.000')
         ->assertSee(route('parking-log.show', $log), false);
 });
 
-test('the overview floor plan links every slot to its inline detail below the preview', function () {
+test('the overview renders the inline detail when a slot is selected', function () {
     $this->actingAs(User::factory()->make());
 
     $slot = createSlotDetailSlot(['nomer_slot' => 'A-07', 'lokasi' => 'Lantai 2']);
 
-    $this->get(route('dashboard', ['lantai' => 2]))
+    $this->get(route('dashboard', ['slot' => $slot->id_slot]))
         ->assertOk()
-        ->assertSee(route('dashboard', ['slot' => $slot->id_slot, 'lantai' => 2]));
+        ->assertSee('Slot A-07')
+        ->assertSee(route('dashboard', ['slot' => $slot->id_slot]).'#slot-detail', false);
 });

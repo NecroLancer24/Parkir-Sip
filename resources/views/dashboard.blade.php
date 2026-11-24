@@ -14,8 +14,13 @@
                 class="inline-flex h-8 items-center gap-2 rounded-lg border border-line bg-white px-3 text-[12px] font-medium text-ink-soft transition-colors hover:bg-subtle"
             >
                 <x-icon name="calendar" class="size-3.5 text-ink-muted" />
+<<<<<<< Updated upstream
                 Today, {{ now()->format('M j, Y') }}
             </button>
+=======
+                Hari ini, {{ now()->translatedFormat('d F Y') }}
+            </div>
+>>>>>>> Stashed changes
         </div>
     </div>
 

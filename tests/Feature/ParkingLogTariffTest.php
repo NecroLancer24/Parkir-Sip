@@ -86,22 +86,22 @@ test('the parking log table shows the vehicle type and tariff', function () {
 
     $this->get(route('parking-log'))
         ->assertOk()
-        ->assertSee('Tariff')
+        ->assertSee('Tarif')
         ->assertSee('Mobil')
         ->assertSee('Rp 5.000');
 });
 
-test('the overview shows the slots as a compact availability strip', function () {
+test('the overview shows the parking map with its availability legend', function () {
     $this->actingAs(User::factory()->make());
 
     createTariffParkingLog();
 
     $this->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Parking slots')
-        ->assertSee('A-01')
-        ->assertSee('Parking map')
-        ->assertSee('ONE WAY')
-        ->assertSee('Entry')
-        ->assertSee('Exit');
+        ->assertSee('Denah slot parkir')
+        ->assertSee('Denah parkir')
+        ->assertSee('Terisi')
+        ->assertSee('Tersedia')
+        ->assertSee('0 tersedia')
+        ->assertDontSee('A-01');
 });

@@ -86,10 +86,10 @@ test('the parking log can be exported as an excel file', function () {
         ->toContain('B 1234 ABC')
         ->toContain('Ada Lovelace')
         ->toContain('Lantai 1')
-        ->toContain('Tariff')
+        ->toContain('Tarif')
         ->toContain('Motor')
         ->toContain('Rp 4.000')
-        ->toContain('Parked');
+        ->toContain('Sedang parkir');
 });
 
 test('the parking log export respects the search filter', function () {

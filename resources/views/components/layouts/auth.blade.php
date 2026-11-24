@@ -1,6 +1,6 @@
 @props([
-    'title' => 'Sign in',
-    'headline' => ['Every space. Every gate.', 'One clear view.'],
+    'title' => 'Masuk',
+    'headline' => ['Setiap ruang. Setiap gerbang.', 'Satu pandangan jelas.'],
 ])
 
 <!DOCTYPE html>
@@ -35,9 +35,9 @@
             </main>
 
             <footer class="flex shrink-0 items-center justify-end gap-2 pb-8 text-[10.5px] text-ink-muted">
-                <a href="#" class="transition-colors hover:text-ink-soft">Privacy policy</a>
+                <a href="#" class="transition-colors hover:text-ink-soft">Kebijakan privasi</a>
                 <span class="text-line">·</span>
-                <a href="#" class="transition-colors hover:text-ink-soft">Contact support</a>
+                <a href="#" class="transition-colors hover:text-ink-soft">Hubungi dukungan</a>
             </footer>
         </div>
 
@@ -49,7 +49,7 @@
             <div class="relative flex h-full flex-col overflow-y-auto px-12 pb-8 pt-10 [scrollbar-width:none] [@media(min-height:980px)]:pb-10 [@media(min-height:980px)]:pt-24 [&::-webkit-scrollbar]:hidden">
                 <span class="inline-flex w-fit items-center gap-2 rounded-full border border-[#31585a] bg-[#1d484a]/70 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8fc6ba]">
                     <x-icon name="router" class="size-3" />
-                    Built for ESP32 parking systems
+                    Dirancang untuk sistem parkir ESP32
                 </span>
 
                 <h2 class="mt-7 text-[38px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#f2f7f6] [@media(min-height:980px)]:mt-8">
@@ -59,7 +59,7 @@
                 </h2>
 
                 <p class="mt-4 max-w-[430px] text-[12.5px] leading-relaxed text-[#acc9c7] [@media(min-height:980px)]:mt-5">
-                    Bring slot availability, gate controls, and device health together in one connected workspace.
+                    Pantau ketersediaan slot, kendali gerbang, dan kesehatan perangkat dalam satu ruang kerja terhubung.
                 </p>
 
                 {{-- Gate & vehicle illustration --}}
@@ -67,7 +67,7 @@
                     <div class="pointer-events-none absolute -right-16 -top-20 size-44 rounded-full bg-[#2f827c]/20 blur-3xl"></div>
 
                     <div class="relative flex items-center justify-between gap-3">
-                        <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8fc6ba]">Gate A · Entry lane</p>
+                        <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8fc6ba]">Gerbang A · Jalur masuk</p>
 
                         <span class="inline-flex items-center gap-1.5 text-[8.5px] font-medium uppercase tracking-[0.12em] text-[#7fa5a1]">
                             <span class="auth-scene-beacon size-1.5 rounded-full bg-[#8fc6ba]"></span>
@@ -145,9 +145,9 @@
                 {{-- Features --}}
                 <div class="mt-8 grid shrink-0 grid-cols-3 gap-4 border-t border-[#31585a] pt-5 [@media(min-height:980px)]:mt-10">
                     @foreach ([
-                        ['icon' => 'grid', 'title' => 'Slot visibility', 'copy' => 'Know which spaces are free in real time.'],
-                        ['icon' => 'gate', 'title' => 'Gate control', 'copy' => 'Open and close entry gates remotely.'],
-                        ['icon' => 'router', 'title' => 'Device health', 'copy' => 'Stay ahead of offline sensors.'],
+                        ['icon' => 'grid', 'title' => 'Visibilitas slot', 'copy' => 'Ketahui slot yang kosong secara real time.'],
+                        ['icon' => 'gate', 'title' => 'Kendali gerbang', 'copy' => 'Buka dan tutup gerbang masuk dari jarak jauh.'],
+                        ['icon' => 'router', 'title' => 'Kesehatan perangkat', 'copy' => 'Pantau sensor yang offline lebih awal.'],
                     ] as $feature)
                         <div>
                             <span class="grid size-7 place-items-center rounded-md border border-[#31585a] bg-[#1d484a] text-[#8fc6ba]">

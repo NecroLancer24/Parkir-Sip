@@ -46,7 +46,7 @@ class ParkingLogExport
      */
     private function worksheetXml(): string
     {
-        $headers = ['Slot', 'Location', 'Plate', 'User', 'Vehicle', 'Entry', 'Exit', 'Tariff', 'Status'];
+        $headers = ['Slot', 'Lokasi', 'Plat', 'Pengguna', 'Kendaraan', 'Masuk', 'Keluar', 'Tarif', 'Status'];
         $widths = [12, 18, 20, 24, 12, 20, 20, 14, 12];
 
         $rows = $this->logs->map(fn (parking_log $log): array => [
@@ -55,10 +55,10 @@ class ParkingLogExport
             $this->plateFor($log),
             $log->nama_pengguna,
             $log->jenisKendaraanLabel(),
-            optional($log->waktu_masuk)->format('d M Y, H:i') ?? '-',
-            optional($log->waktu_keluar)->format('d M Y, H:i') ?? '-',
+            optional($log->waktu_masuk)->translatedFormat('d M Y, H:i') ?? '-',
+            optional($log->waktu_keluar)->translatedFormat('d M Y, H:i') ?? '-',
             $log->tarifFormatted(),
-            $log->waktu_keluar === null ? 'Parked' : 'Completed',
+            $log->waktu_keluar === null ? 'Sedang parkir' : 'Selesai',
         ]);
 
         $lastRow = max($rows->count() + 1, 1);
@@ -126,7 +126,7 @@ class ParkingLogExport
             return $plate;
         }
 
-        return $log->plateImageUrl() !== null ? 'Image capture' : '-';
+        return $log->plateImageUrl() !== null ? 'Tangkapan gambar' : '-';
     }
 
     /**
@@ -177,7 +177,7 @@ class ParkingLogExport
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             .'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            .'<sheets><sheet name="Parking log" sheetId="1" r:id="rId1"/></sheets>'
+            .'<sheets><sheet name="Riwayat parkir" sheetId="1" r:id="rId1"/></sheets>'
             .'</workbook>';
     }
 

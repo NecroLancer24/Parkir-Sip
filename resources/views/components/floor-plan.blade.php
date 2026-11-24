@@ -36,6 +36,7 @@
             @endforeach
         </div>
 
+<<<<<<< Updated upstream
         {{-- Parking map: mini floor plan, bay bands paired around the drive lanes --}}
         <div class="mx-auto w-full max-w-[860px] rounded-[8px] border border-[#e3e9eb] bg-[#f8fafa] p-[10px]">
             <div aria-label="Parking map" class="rounded-[6px] border-2 border-[#172c32] bg-white p-[8px]">
@@ -100,6 +101,32 @@
                             @endforeach
                         </div>
                     @endif
+=======
+                            <a
+                                href="{{ route('dashboard', ['slot' => $slotModel->id_slot]) }}#slot-detail"
+                                title="{{ $slotModel->status_slot ? 'Terisi' : 'Tersedia' }}"
+                                @class([
+                                    'flex h-[68px] min-w-0 flex-1 flex-col items-center justify-center rounded-[4px] border p-[4px] transition-colors',
+                                    $bayClasses,
+                                ])
+                            >
+                                @if ($slotModel->status_slot)
+                                    {{-- Ikon mobil merah jika slot terisi --}}
+                                    <div @class([
+                                        'flex h-[34px] w-[22px] flex-col gap-[6px] rounded-[5px] bg-[#cd5c5c] px-[4px] pb-[4px] pt-[5px]',
+                                        'rotate-180' => $noseDown,
+                                    ])>
+                                        <div class="h-[6px] w-[14px] rounded-[1px] bg-[#f0cfcf]"></div>
+                                        <div class="h-[5px] w-[14px] rounded-[1px] bg-[#e5b8b8]"></div>
+                                    </div>
+                                @else
+                                    {{-- Huruf P hijau jika slot kosong --}}
+                                    <p class="text-[20px] font-semibold text-[#087f75]">P</p>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+>>>>>>> Stashed changes
 
                     @if (in_array($bandIndex, [0, 2]))
                         {{-- Drive lane with one-way flow, gates at both ends --}}

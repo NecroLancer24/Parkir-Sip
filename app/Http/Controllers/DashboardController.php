@@ -29,6 +29,20 @@ class DashboardController extends Controller
         $slotTerpilih = $request->filled('slot')
             ? slot::with('sensor')->find($request->integer('slot'))
             : null;
+<<<<<<< Updated upstream
+=======
+
+        $riwayatSlot = $slotTerpilih
+            ? $slotTerpilih->parkingLogs()
+                ->with(['pengguna', 'sensor'])
+                ->orderByDesc('waktu_masuk')
+                ->get()
+            : collect();
+
+        // 2. Hitung kendaraan masuk & keluar hari ini
+        $entriesToday = parking_log::whereDate('waktu_masuk', today())->count();
+        $exitsToday = parking_log::whereDate('waktu_keluar', today())->count();
+>>>>>>> Stashed changes
 
         $riwayatSlot = $slotTerpilih
             ? $slotTerpilih->parkingLogs()->with(['pengguna', 'sensor'])->orderByDesc('waktu_masuk')->get()
@@ -36,6 +50,7 @@ class DashboardController extends Controller
 
         $slots = slot::with('sensor')->orderBy('nomer_slot')->get();
 
+<<<<<<< Updated upstream
         $floors = $slots
             ->groupBy(fn (slot $slotModel) => $slotModel->lokasi ?? 'Lantai 1')
             ->sortBy(fn ($floorSlots, $label) => (int) filter_var($label, FILTER_SANITIZE_NUMBER_INT))
@@ -44,6 +59,75 @@ class DashboardController extends Controller
                 'number' => (int) filter_var($label, FILTER_SANITIZE_NUMBER_INT),
                 'slots' => $floorSlots->sortBy('nomer_slot')->values(),
             ])
+=======
+        $maxChartVal = max(10, (int) ceil(max(array_merge($entriesSeries, $exitsSeries, [1])) / 10) * 10);
+        $entriesPath = $this->buildSvgLinePath($entriesSeries, $maxChartVal);
+        $exitsPath = $this->buildSvgLinePath($exitsSeries, $maxChartVal);
+
+        // 4. Kelompokkan slot untuk komponen denah parkir
+        $floors = collect([
+            [
+                'label' => 'Area Parkir',
+                'number' => 1,
+                'slots' => $slots->values(),
+            ],
+        ]);
+
+        // 5. Aktivitas Terbaru (tanpa nomor slot agar selaras dengan denah sederhana)
+        $recentLogs = parking_log::orderByDesc('updated_at')
+            ->limit(8)
+            ->get();
+
+        $recentActivities = collect();
+        foreach ($recentLogs as $log) {
+            if ($log->waktu_keluar !== null) {
+                $recentActivities->push([
+                    'icon' => 'gate',
+                    'title' => 'Kendaraan keluar',
+                    'meta' => 'Gerbang Keluar · Area Parkir',
+                    'time' => $log->waktu_keluar->format('H:i'),
+                    'timestamp' => $log->waktu_keluar->timestamp,
+                    'tone' => 'muted',
+                ]);
+                $recentActivities->push([
+                    'icon' => 'parking',
+                    'title' => 'Slot parkir kembali kosong',
+                    'meta' => 'Sensor Ultrasonik · Area Parkir',
+                    'time' => $log->waktu_keluar->format('H:i'),
+                    'timestamp' => $log->waktu_keluar->timestamp - 1,
+                    'tone' => 'muted',
+                ]);
+            }
+
+            if ($log->waktu_masuk !== null) {
+                $recentActivities->push([
+                    'icon' => 'entry',
+                    'title' => 'Kendaraan masuk',
+                    'meta' => $log->id_slot === null
+                        ? 'Menunggu update slot dari sensor'
+                        : 'Gerbang Masuk · Area Parkir',
+                    'time' => $log->waktu_masuk->format('H:i'),
+                    'timestamp' => $log->waktu_masuk->timestamp,
+                    'tone' => 'brand',
+                ]);
+
+                if ($log->id_slot !== null) {
+                    $recentActivities->push([
+                        'icon' => 'parking',
+                        'title' => 'Slot parkir terisi',
+                        'meta' => 'Sensor Ultrasonik · Area Parkir',
+                        'time' => $log->waktu_masuk->format('H:i'),
+                        'timestamp' => $log->waktu_masuk->timestamp - 1,
+                        'tone' => 'brand',
+                    ]);
+                }
+            }
+        }
+
+        $recentActivities = $recentActivities
+            ->sortByDesc('timestamp')
+            ->take(5)
+>>>>>>> Stashed changes
             ->values();
 
         // Active floor: explicit ?lantai=, otherwise the floor of the selected slot.
@@ -68,12 +152,18 @@ class DashboardController extends Controller
             ],
             'slots' => $slots,
             'floors' => $floors,
+<<<<<<< Updated upstream
             'activeFloor' => $floors->get($activeFloorIndex),
             'activeFloorIndex' => $activeFloorIndex,
             'riwayatTerbaru' => parking_log::with(['pengguna', 'slot'])
                 ->latest('waktu_masuk')
                 ->limit(5)
                 ->get(),
+=======
+            'activeFloor' => $floors->first(),
+            'activeFloorIndex' => 0,
+            'recentActivities' => $recentActivities,
+>>>>>>> Stashed changes
             'slotTerpilih' => $slotTerpilih,
             'riwayatSlot' => $riwayatSlot,
             'logAktifSlot' => $riwayatSlot->firstWhere('waktu_keluar', null),
@@ -83,6 +173,62 @@ class DashboardController extends Controller
     /**
      * Display a paginated, searchable table of parking logs.
      */
+<<<<<<< Updated upstream
+=======
+    public function liveData(): JsonResponse
+    {
+        $slots = slot::with('sensor')->orderBy('nomer_slot')->limit(24)->get();
+        $totalSlots = $slots->count();
+        $occupiedSlots = $slots->where('status_slot', true)->count();
+        $availableSlots = max($totalSlots - $occupiedSlots, 0);
+
+        $floors = collect([
+            [
+                'label' => 'Area Parkir',
+                'number' => 1,
+                'slots' => $slots->values(),
+            ],
+        ]);
+
+        $floorHtml = view('components.floor-plan', [
+            'floors' => $floors,
+            'activeFloorIndex' => 0,
+            'selectedId' => null,
+        ])->render();
+
+        return response()->json([
+            'available' => $availableSlots,
+            'occupied' => $occupiedSlots,
+            'total' => $totalSlots,
+            'percent' => $totalSlots > 0 ? round(($occupiedSlots / $totalSlots) * 100) : 0,
+            'floor_html' => $floorHtml,
+        ]);
+    }
+
+    /**
+     * Mengubah deretan angka masuk/keluar per jam menjadi koordinat garis SVG.
+     *
+     * @param  array<int, int>  $values
+     */
+    private function buildSvgLinePath(array $values, int $maxVal): string
+    {
+        $count = count($values);
+        if ($count === 0) {
+            return 'M 0,130 L 640,130';
+        }
+
+        $points = [];
+        foreach ($values as $idx => $val) {
+            $x = round(($idx / max($count - 1, 1)) * 640, 1);
+            $ratio = min(max($val / max($maxVal, 1), 0), 1);
+            $y = round(126 - ($ratio * 116), 1);
+            $points[] = "{$x},{$y}";
+        }
+
+        return 'M '.implode(' L ', $points);
+    }
+
+>>>>>>> Stashed changes
     public function parkingLog(Request $request): View
     {
         $cari = $request->string('q')->trim()->toString();
@@ -122,9 +268,9 @@ class DashboardController extends Controller
                         ->orWhereRaw('CONVERT(sensors.plat_nomer USING utf8mb4) LIKE ?', ["%{$cari}%"]);
                 });
             })
-            ->join('slots', 'slots.id_slot', '=', 'parking_log.id_slot')
+            ->leftJoin('slots', 'slots.id_slot', '=', 'parking_log.id_slot')
             ->join('pengguna', 'pengguna.uuid_pengguna', '=', 'parking_log.uuid_pengguna')
-            ->join('sensors', 'sensors.id_sensor', '=', 'parking_log.id_sensor')
+            ->leftJoin('sensors', 'sensors.id_sensor', '=', 'parking_log.id_sensor')
             ->select([
                 'parking_log.*',
                 'slots.nomer_slot',

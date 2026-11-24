@@ -1,14 +1,14 @@
 <x-layouts.auth
-    title="Create account"
-    :headline="['Better parking starts', 'with a clear view.']"
+    title="Buat akun"
+    :headline="['Parkir lebih baik dimulai', 'dengan pandangan yang jelas.']"
 >
     <div>
-        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand">Get started with Parkir Sip</p>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand">Mulai dengan Parkir Sip</p>
 
-        <h1 class="mt-3 text-[30px] font-semibold leading-tight tracking-[-0.02em] text-ink">Create your workspace</h1>
+        <h1 class="mt-3 text-[30px] font-semibold leading-tight tracking-[-0.02em] text-ink">Buat ruang kerja Anda</h1>
 
         <p class="mt-2 text-[12.5px] leading-relaxed text-ink-soft">
-            A clearer view of every gate, slot, and sensor. Set up your parking operations in one place.
+            Pandangan yang lebih jelas untuk setiap gerbang, slot, dan sensor. Kelola operasional parkir Anda dalam satu tempat.
         </p>
     </div>
 
@@ -17,7 +17,7 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <label for="name" class="block text-[11px] font-medium text-ink-soft">Full name</label>
+                <label for="name" class="block text-[11px] font-medium text-ink-soft">Nama lengkap</label>
 
                 <div class="relative mt-1.5">
                     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-ink-muted">
@@ -32,7 +32,7 @@
                         required
                         autofocus
                         autocomplete="name"
-                        placeholder="Alex Morgan"
+                        placeholder="Nama lengkap"
                         @class([
                             'h-11 w-full rounded-[10px] border bg-white pl-10 pr-3 text-[12.5px] text-ink placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2',
                             'border-line focus:border-brand focus:ring-brand/15' => ! $errors->has('name'),
@@ -47,7 +47,7 @@
             </div>
 
             <div>
-                <label for="organization" class="block text-[11px] font-medium text-ink-soft">Organization</label>
+                <label for="organization" class="block text-[11px] font-medium text-ink-soft">Organisasi</label>
 
                 <div class="relative mt-1.5">
                     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-ink-muted">
@@ -60,7 +60,7 @@
                         type="text"
                         value="{{ old('organization') }}"
                         autocomplete="organization"
-                        placeholder="Central Park"
+                        placeholder="Nama instansi"
                         @class([
                             'h-11 w-full rounded-[10px] border bg-white pl-10 pr-3 text-[12.5px] text-ink placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2',
                             'border-line focus:border-brand focus:ring-brand/15' => ! $errors->has('organization'),
@@ -76,7 +76,7 @@
         </div>
 
         <div>
-            <label for="email" class="block text-[11px] font-medium text-ink-soft">Work email</label>
+            <label for="email" class="block text-[11px] font-medium text-ink-soft">Email kerja</label>
 
             <div class="relative mt-1.5">
                 <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-ink-muted">
@@ -90,7 +90,7 @@
                     value="{{ old('email') }}"
                     required
                     autocomplete="email"
-                    placeholder="alex@centralpark.co"
+                    placeholder="nama@instansi.co.id"
                     @class([
                         'h-11 w-full rounded-[10px] border bg-white pl-10 pr-3 text-[12.5px] text-ink placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2',
                         'border-line focus:border-brand focus:ring-brand/15' => ! $errors->has('email'),
@@ -105,7 +105,7 @@
         </div>
 
         <div>
-            <label for="password" class="block text-[11px] font-medium text-ink-soft">Password</label>
+            <label for="password" class="block text-[11px] font-medium text-ink-soft">Kata sandi</label>
 
             <div class="relative mt-1.5">
                 <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-ink-muted">
@@ -118,7 +118,7 @@
                     type="password"
                     required
                     autocomplete="new-password"
-                    placeholder="At least 8 characters"
+                    placeholder="Minimal 8 karakter"
                     @class([
                         'h-11 w-full rounded-[10px] border bg-white pl-10 pr-11 text-[12.5px] text-ink placeholder:text-ink-muted transition-colors focus:outline-none focus:ring-2',
                         'border-line focus:border-brand focus:ring-brand/15' => ! $errors->has('password'),
@@ -130,7 +130,7 @@
                     type="button"
                     data-password-toggle="password"
                     class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-ink-muted transition-colors hover:text-ink-soft"
-                    aria-label="Show password"
+                    aria-label="Tampilkan kata sandi"
                 >
                     <x-icon name="eye" class="size-4" data-eye-open />
                     <x-icon name="eye-off" class="hidden size-4" data-eye-closed />
@@ -152,10 +152,10 @@
                     @checked(old('terms'))
                 >
                 <span>
-                    I agree to the
-                    <a href="#" class="font-medium text-brand hover:text-brand-strong">Terms of service</a>
-                    and
-                    <a href="#" class="font-medium text-brand hover:text-brand-strong">Privacy policy</a>.
+                    Saya menyetujui
+                    <a href="#" class="font-medium text-brand hover:text-brand-strong">Ketentuan layanan</a>
+                    dan
+                    <a href="#" class="font-medium text-brand hover:text-brand-strong">Kebijakan privasi</a>.
                 </span>
             </label>
 
@@ -168,19 +168,19 @@
             type="submit"
             class="h-11 w-full rounded-[10px] bg-brand text-[12.5px] font-semibold text-white transition-colors hover:bg-brand-strong focus:outline-none focus:ring-2 focus:ring-brand/25 focus:ring-offset-2"
         >
-            Create account
+            Buat akun
         </button>
     </form>
 
     <div class="my-6 flex items-center gap-3">
         <span class="h-px flex-1 bg-line-soft"></span>
-        <span class="text-[9.5px] font-medium uppercase tracking-[0.16em] text-ink-muted">or continue with</span>
+        <span class="text-[9.5px] font-medium uppercase tracking-[0.16em] text-ink-muted">atau lanjutkan dengan</span>
         <span class="h-px flex-1 bg-line-soft"></span>
     </div>
 
     <button
         type="button"
-        title="Google sign-in is not configured yet"
+        title="Masuk dengan Google belum dikonfigurasi"
         class="flex h-11 w-full items-center justify-center gap-2.5 rounded-[10px] border border-line bg-white text-[12px] font-medium text-ink-soft transition-colors hover:bg-subtle"
     >
         <x-icon name="google" class="size-4" />
@@ -188,7 +188,7 @@
     </button>
 
     <p class="mt-6 text-center text-[11.5px] text-ink-muted">
-        Already have an account?
-        <a href="{{ route('login') }}" class="font-semibold text-brand transition-colors hover:text-brand-strong">Sign in</a>
+        Sudah punya akun?
+        <a href="{{ route('login') }}" class="font-semibold text-brand transition-colors hover:text-brand-strong">Masuk</a>
     </p>
 </x-layouts.auth>

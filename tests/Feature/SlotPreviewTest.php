@@ -55,96 +55,55 @@ test('the overview floor plan links each slot to the inline detail below the pre
 
     $slot = createPreviewSlot(['nomer_slot' => 'A-07', 'lokasi' => 'Lantai 2']);
 
-    $this->get(route('dashboard', ['lantai' => 2]))
+    $this->get(route('dashboard'))
         ->assertOk()
-        ->assertSee(route('dashboard', ['slot' => $slot->id_slot, 'lantai' => 2]));
+        ->assertSee(route('dashboard', ['slot' => $slot->id_slot]).'#slot-detail', false);
 });
 
-test('the floor plan renders every seeded slot as a linked rectangle', function () {
+test('the parking map renders at most twenty-four linked slots', function () {
     $this->actingAs(User::factory()->make());
 
-    foreach (['A-01', 'A-02', 'A-03', 'A-04', 'A-05'] as $index => $nomer) {
-        createPreviewSlot(['nomer_slot' => $nomer, 'lokasi' => 'Lantai '.($index % 3 + 1)]);
+    foreach (range(1, 30) as $number) {
+        createPreviewSlot([
+            'nomer_slot' => 'A-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+            'lokasi' => 'Lantai 1',
+            'status_slot' => false,
+        ]);
     }
 
-    // Each floor renders on its own tab, so request all three and count the links.
-    $expected = [
-        1 => ['A-01', 'A-04'],
-        2 => ['A-02', 'A-05'],
-        3 => ['A-03'],
-    ];
+    $response = $this->get(route('dashboard'))->assertOk();
 
-    $totalLinks = 0;
-
-    foreach ($expected as $lantai => $codes) {
-        $response = $this->get(route('dashboard', ['lantai' => $lantai]))->assertOk();
-
-        foreach ($codes as $code) {
-            $response->assertSee($code);
-        }
-
-        $links = substr_count($response->getContent(), '#slot-detail');
-        expect($links)->toBe(count($codes));
-
-        $totalLinks += $links;
-    }
-
-    expect($totalLinks)->toBe(5);
+    expect(substr_count($response->getContent(), '#slot-detail'))->toBe(24)
+        ->and($response->getContent())->toContain('24 tersedia');
 });
 
-test('the overview shows the floor plan one floor at a time through tabs', function () {
+test('the overview renders one parking area without floor tabs', function () {
     $this->actingAs(User::factory()->make());
 
-    // Lantai 1: two occupied. Lantai 2: all free. Lantai 3: all occupied.
-    $occupancy = [
-        'A' => [true, false, true, false, false, false, false, false],
-        'B' => [false, false, false, false, false, false, false, false],
-        'C' => [true, true, true, true, true, true, true, true],
-    ];
     $floorOf = ['A' => 1, 'B' => 2, 'C' => 3];
 
-    foreach ($occupancy as $letter => $states) {
-        foreach ($states as $index => $occupied) {
+    foreach ($floorOf as $letter => $floor) {
+        foreach (range(1, 8) as $number) {
             createPreviewSlot([
-                'nomer_slot' => $letter.'-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
-                'lokasi' => 'Lantai '.$floorOf[$letter],
-                'status_slot' => $occupied,
+                'nomer_slot' => $letter.'-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                'lokasi' => 'Lantai '.$floor,
+                'status_slot' => $number % 2 === 0,
             ]);
         }
     }
 
-    $codes = fn (string $letter) => collect(range(1, 8))
-        ->map(fn ($number) => $letter.'-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT))
-        ->all();
+    $response = $this->get(route('dashboard', ['lantai' => 2]))->assertOk();
 
-    $lantai1 = $this->get(route('dashboard', ['lantai' => 1]))
-        ->assertOk()
-        ->assertSeeInOrder(['Lantai 1', 'Lantai 2', 'Lantai 3']);
+    expect(substr_count($response->getContent(), '#slot-detail'))->toBe(24);
 
-    foreach ($codes('A') as $code) {
-        $lantai1->assertSee($code);
-    }
-
-    $lantai1->assertSee('6 of 8 slots available')->assertDontSee('B-01');
-
-    $this->get(route('dashboard', ['lantai' => 2]))
-        ->assertOk()
-        ->assertSee('8 of 8 slots available')
-        ->assertDontSee('A-01')
-        ->assertDontSee('C-01');
-
-    $this->get(route('dashboard', ['lantai' => 3]))
-        ->assertOk()
-        ->assertSee('0 of 8 slots available')
-        ->assertDontSee('B-01');
-
-    $this->get(route('dashboard'))
-        ->assertOk()
-        ->assertSee('A-01')
-        ->assertDontSee('B-01');
+    $response
+        ->assertSee('Denah parkir')
+        ->assertDontSee('Lantai 1')
+        ->assertDontSee('Lantai 2')
+        ->assertDontSee('Lantai 3');
 });
 
-test('selecting a slot opens its own floor and the inline detail below the plan', function () {
+test('selecting a slot opens its inline detail below the plan', function () {
     $this->actingAs(User::factory()->make());
 
     createPreviewSlot(['nomer_slot' => 'A-01', 'lokasi' => 'Lantai 1']);
@@ -167,7 +126,7 @@ test('the overview shows the selected slot detail below the floor plan', functio
     $this->get(route('dashboard', ['slot' => $slot->id_slot]))
         ->assertOk()
         ->assertSee('Slot A-07')
-        ->assertSee('Parking history')
+        ->assertSee('Riwayat parkir')
         ->assertSee('Ada Lovelace')
         ->assertSee('Rp 4.000')
         ->assertSee(route('parking-log.show', $log), false);
@@ -195,4 +154,25 @@ test('available slots keep the green preview color', function () {
         ->assertSee('bg-[#e8f5f1]')
         ->assertDontSee('bg-[#fdecec]')
         ->assertDontSee('bg-[#edf1f3]');
+});
+
+test('the live data endpoint requires authentication', function () {
+    $this->get(route('dashboard.live-data'))
+        ->assertRedirect(route('login'));
+});
+
+test('the live data endpoint returns the current parking area for operators', function () {
+    $this->actingAs(User::factory()->make());
+
+    createPreviewSlot(['nomer_slot' => 'A-01', 'lokasi' => 'Lantai 1', 'status_slot' => true]);
+
+    $this->getJson(route('dashboard.live-data'))
+        ->assertOk()
+        ->assertJsonStructure(['available', 'occupied', 'total', 'percent', 'floor_html'])
+        ->assertJson([
+            'available' => 0,
+            'occupied' => 1,
+            'total' => 1,
+            'percent' => 100,
+        ]);
 });

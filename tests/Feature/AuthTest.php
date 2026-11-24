@@ -9,16 +9,20 @@ test('guests are redirected to the login page', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
 });
 
+test('guests cannot run dashboard maintenance actions', function (string $path) {
+    $this->get($path)->assertRedirect(route('login'));
+})->with(['/hapus-data-coba', '/randomize-slot', '/setup-denah-3-lantai']);
+
 test('the login page can be rendered', function () {
     $this->get(route('login'))
         ->assertOk()
-        ->assertSee('Welcome back');
+        ->assertSee('Selamat datang kembali');
 });
 
 test('the register page can be rendered', function () {
     $this->get(route('register'))
         ->assertOk()
-        ->assertSee('Create your workspace');
+        ->assertSee('Buat ruang kerja Anda');
 });
 
 test('an operator can sign in', function () {
